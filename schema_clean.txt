@@ -1,0 +1,97 @@
+CREATE TABLE `case_file` (
+  `case_file_id` int(11) NOT NULL,
+  `case_name` varchar(100) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `assigned_to` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `detections` (
+  `detection_id` int(11) NOT NULL,
+  `image_id` int(11) DEFAULT NULL,
+  `detected_license_plate` varchar(20) DEFAULT NULL,
+  `detected_vehicle_type` varchar(50) DEFAULT NULL,
+  `detected_color` varchar(50) DEFAULT NULL,
+  `confidence_score` decimal(5,2) DEFAULT NULL,
+  `detected_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_verified` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `images` (
+  `image_id` int(11) NOT NULL,
+  `video_id` int(11) DEFAULT NULL,
+  `frame_number` int(11) DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `report` (
+  `report_id` int(11) NOT NULL,
+  `case_file_id` int(11) DEFAULT NULL,
+  `generated_by` int(11) DEFAULT NULL,
+  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `total_uploaded_videos` int(11) DEFAULT NULL,
+  `total_detected_vehicles` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `file_path` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `suspect_vehicle` (
+  `suspect_id` int(11) NOT NULL,
+  `detection_id` int(11) DEFAULT NULL,
+  `license_plate` varchar(20) DEFAULT NULL,
+  `vehicle_type` varchar(50) DEFAULT NULL,
+  `color` varchar(50) DEFAULT NULL,
+  `suspect_type` enum('AI_DETECTED','REPORTED','STOLEN') DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `users` (
+  `user_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role` enum('USER','LEADER','ADMIN') NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `last_seen` datetime DEFAULT NULL,
+  `is_online` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `user_log` (
+  `log_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `action_type` varchar(50) DEFAULT NULL,
+  `action_timestamp` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `videos` (
+  `video_id` int(11) NOT NULL,
+  `case_file_id` int(11) DEFAULT NULL,
+  `video_path` varchar(255) DEFAULT NULL,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `upload_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fps` float DEFAULT 30
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ALTER TABLE `case_file`
+ALTER TABLE `detections`
+ALTER TABLE `images`
+ALTER TABLE `report`
+ALTER TABLE `suspect_vehicle`
+ALTER TABLE `users`
+ALTER TABLE `user_log`
+ALTER TABLE `videos`
+ALTER TABLE `case_file`
+ALTER TABLE `detections`
+ALTER TABLE `images`
+ALTER TABLE `report`
+ALTER TABLE `suspect_vehicle`
+ALTER TABLE `users`
+ALTER TABLE `user_log`
+ALTER TABLE `videos`
+ALTER TABLE `case_file`
+  ADD CONSTRAINT `case_file_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+ALTER TABLE `detections`
+  ADD CONSTRAINT `detections_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images` (`image_id`) ON DELETE CASCADE;
+ALTER TABLE `images`
+  ADD CONSTRAINT `images_ibfk_1` FOREIGN KEY (`video_id`) REFERENCES `videos` (`video_id`) ON DELETE CASCADE;
+ALTER TABLE `report`
+  ADD CONSTRAINT `report_ibfk_1` FOREIGN KEY (`case_file_id`) REFERENCES `case_file` (`case_file_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `report_ibfk_2` FOREIGN KEY (`generated_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+ALTER TABLE `suspect_vehicle`
+  ADD CONSTRAINT `suspect_vehicle_ibfk_1` FOREIGN KEY (`detection_id`) REFERENCES `detections` (`detection_id`) ON DELETE CASCADE;
+ALTER TABLE `user_log`
+  ADD CONSTRAINT `user_log_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE `videos`
+  ADD CONSTRAINT `videos_ibfk_1` FOREIGN KEY (`case_file_id`) REFERENCES `case_file` (`case_file_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `videos_ibfk_2` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
